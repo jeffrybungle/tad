@@ -1,0 +1,23 @@
+# Node.js
+node_modules/
+dist/
+*.log
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+.venv/
+env/
+venv/
+Pipfile.lock
+
+# VS Code & system
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Zips and archives
+*.zip
+*.tar.gz

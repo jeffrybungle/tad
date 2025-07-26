@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Atlantis Debate</title>
+    <link rel="stylesheet" href="/dist/style.css">
+</head>
+
+<body>
+    <div id="app"></div>
+    <script src="/dist/main.js"></script>
+
+
+    <!--Background map, uses panzoom-->
+    <div id="map-wrapper">
+        <div id="worldmap">
+            <img id="map-image" src="img/map.jpg">
+        </div>
+        <div>
+            <!--dynamicly place thumbs-->
+        </div>
+        <div>
+            <!--Grid for admin-->
+        </div>
+    </div>
+
+
+
+    <!--Title Dropdown, hidden by default
+    </div id="titledropdown-modal" class="menu-modal">
+    Dynamic tickbox array for the 'type's of thumbnails
+    </div>
+    -->
+
+    <!--Account Dropdown, menu that open modals, hidden by default
+    </div id="accountdropdown-modal" class="menu-modal">
+    My Information
+    My Opinions
+    My Queries
+    My Settings
+    </div>
+    -->
+
+    <!--admin sidebar, hidden by default
+    <div id="admin-sidebar" class="menu-modal>
+        <hr>Admin</hr>
+        Queries with notifaction number for pending queries
+        Pins with notifaction
+        <br>
+        Thumb list
+        New Thumb
+        New Thumb Type
+    </div>
+    -->
+
+    <!--nonadmin modals-->
+    <div id="thumbmodal-noadmin" class="popout-modal" hidden>
+        <button class="close-button"></button>
+        <!--content loaded dynamicly-->
+        <!--side image dynamicly loaded-->
+        <!--Slide bar and querybox (public or not public options on queries) for members-->
+    </div>
+
+    <div id="topevidance-modal" class="popout-modal" hidden>
+        <button class="close-button"></button>
+        <hr class="popout-hr">Top Evidance</hr>
+        <hr2>Top 10</hr2> <!--hidden if topevidance-showmore is pressed-->
+        <!--2 columns with dynamicly loaded content-->
+        <button id="topevidance-showmore" class="modal-button">Show More</button>
+        <!--more dynamically loaded content if topevidance-showmore is pressed-->
+    </div>
+
+    <div id="news-modal" class="popout-modal" hidden>
+        <button class="close-button"></button>
+        <hr class="popout-hr">News</hr>
+        <!--dynamicly loaded content via a pin system from the thumbs-->
+    </div>
+
+    <div id="queries-modal" class="popout-modal" hidden>
+        <button class="close-button"></button>
+        <hr class="popout-hr">Queries</hr><!--notifaction number next for unreads-->
+        <!--Dynamicly load queries with filters for compeleted and pending.
+            Shows user img, username, timestamp, sitename (clickable), the query text, completed or pending,
+            comment by me on complete. Amendment popup?-->
+    </div>
+
+    <div id="amendments-modal" class="popout-modal" hidden>
+        <button class="close-button"></button>
+        <hr class="popout-hr">Amendments</hr><!--notifaction number next for unreads-->
+        <!--dynamicly loaded content via a amendment system from the thumbs.
+            Shows amendment type, site name, timestamp, comment, related query popup?-->
+    </div>
+
+    <div id="plato-modal" class="popout-modal" hidden>
+        <button class="close-button"></button>
+        <hr class="popout-hr">Plato Texts</hr>
+        <!--dynamicly loaded content via a amendment system from the thumbs-->
+    </div>
+
+    <div id="about-modal" class="popout-modal" hidden>
+        <button class="close-button"></button>
+        <hr class="popout-hr">The Atlantis Debate</hr>
+        <!--a few paragraphs explaining the goals of the page-->
+    </div>
+
+    <!--Account Modal-->
+    <div id="myinformation-modal" class="popout-modal" hidden>
+        <button class="close-button"></button>
+        <!--username, not editable-->
+        <!---->
+    </div>
+
+    <div id="account-modal" class="popout-modal" hidden>
+        <aside class="sidebar">
+            <ul>
+                <li>Profile</li>
+                <li>My Queries</li>
+                <li>Saved Opinions</li>
+                <li>Prefences</li>
+                <li>Logout</li>
+                <!-- Add more as needed -->
+            </ul>
+        </aside>
+        <main class="content">
+            <!-- The selected section's content goes here -->
+            <!-- Profile form needs username, change password, change user image, add some default images like plato, an A etc -->
+            <!-- My queries load dynamic queries copying the framework of the queries modal-->
+            <!-- saved opinions will show your saved data from the slidebars from the thumbs with a sorting option and will be editible-->
+            <!-- prefences for default notifactions, map content loaded, cookies, keep me signed in-->
+            <!-- logout is a logout button-->
+        </main>
+    </div>
+
+    <!--admin modals-->
+    <div id="thumbmodal-admin" class="popout-modal" hidden>
+        <button class="close-button"></button>
+        <!--add/remove pin system for news-->
+        <!--content loaded dynamicly, text can be altered-->
+        <!--side image dynamicly loaded-->
+        <!--thumb type,replace side image button, postion x and y boxes, thumbnail img changer-->
+        <!--cancel changes and save changes button, 
+        save changes button pops open another modal that asks for Amendment type and comment -->
+    </div>
+
+    <div id="confirm-ammendment-modal" class="popout-modal" hidden>
+        <!--dropdown? for choice of text, image, expired pin or styling-->
+        <!--comment box to explain changes which is logged with timestamp and show in the amendments modal
+        , list of active queries in there to choose from to assign to it?-->
+    </div>
+
+    <div id="pins-modal" class="popout-modal" hidden>
+        <hr class="popout-hr">Pins
+        <hr>
+        <!--add pin section at the top, collapsable?, auto timestamp, choose site with smart validation and a text box-->
+        <!-- shows pins that are expired or expiring with date added, time to expiry site loction (clickable)-->
+    </div>
+
+    <div id="thumblist-modal" class="popout-modal" hidden>
+        <hr class="popout-hr">Pins
+        <hr>
+        <!--dynamicly loads a list of all the sites filtered by typed and sort by a-z,z-a,oldest,newest. Search?-->
+    </div>
+
+    <div id="newthumb-modal" class="popout-modal" hidden>
+        <hr class="popout-hr">New Thumb
+        <hr>
+        <!--an empty edit thumb modal? saves new info on exit do I need this modal? -->
+    </div>
+
+    <div id="newthumbtype-modal" class="popout-modal" hidden>
+        <hr class="popout-hr">New Thumb Type
+        <hr>
+        <!--Just an add new thumb type box, renaming would be too messy? with a save and cancel button -->
+    </div>
+
+</body>
+
+</html>
