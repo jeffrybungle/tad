@@ -1,0 +1,49 @@
+{
+  "markers": [
+    {
+      "id": "egypt",
+      "type": "group",
+      "title": "Egypt",
+      "x": 0.58,
+      "y": 0.48,
+      "items": [
+        {
+          "id": "giza",
+          "type": "site",
+          "title": "Giza Plateau",
+          "x": 0.595,
+          "y": 0.505,
+          "tip": "Pyramids & Sphinx",
+          "description": "About Giza Plateau...",
+          "moreInfo": "",
+          "img": "/img/markers/sphinx.jpg"
+        },
+        {
+          "id": "luxor",
+          "type": "site",
+          "title": "Luxor Temple",
+          "x": 0.645,
+          "y": 0.585,
+          "tip": "New Kingdom temple",
+          "description": "About Luxor Temple...",
+          "moreInfo": "",
+          "img": "/img/map.jpg"
+        },
+        {
+          "id": "karnak",
+          "type": "site",
+          "title": "Karnak",
+          "x": 0.65,
+          "y": 0.575,
+          "tip": "Hypostyle Hall",
+          "description": "About Karnak...",
+          "moreInfo": "",
+          "img": "/img/map.jpg"
+        }
+      ],
+      "description": "About Egypt...",
+      "moreInfo": "",
+      "img": "/img/map.jpg"
+    }
+  ]
+}

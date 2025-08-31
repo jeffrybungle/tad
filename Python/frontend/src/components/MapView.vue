@@ -1,34 +1,101 @@
 <template>
   <div ref="viewport" class="map-viewport">
-    <img
-      ref="imgEl"
-      class="map-image"
-      :src="src"
-      alt="Map"
-      draggable="false"
-      @load="fitToView"
+    <!-- Transform target: image + markers move/scale together -->
+    <div ref="inner" class="map-inner">
+      <img
+        ref="imgEl"
+        class="map-image"
+        :src="src"
+        alt="Map"
+        draggable="false"
+        @load="onImgLoad"
+      />
+
+      <!-- Markers live in the same transformed coordinate space -->
+      <div class="marker-layer">
+        <div
+          v-for="m in visibleMarkers"
+          :key="m.id"
+          class="marker"
+          :class="['type-' + m.type, m.isGroup ? 'is-group' : '']"
+          :style="markerStyle(m)"
+          @click.stop="onMarkerClick(m)"
+          title="Click for details"
+        >
+          <div class="pin"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Group popover is UI-sized (not scaled), positioned in viewport px -->
+    <SubmenuPopover
+      v-if="openGroup && groupVisible"
+      :x="popoverPos.x"
+      :y="popoverPos.y"
+      :title="openGroup.title"
+      :items="openGroup.items"
+      @select="handleSubSelect"
+      @close="openGroup = null"
     />
   </div>
 </template>
 
 <script>
 import Panzoom from '@panzoom/panzoom'
+import SubmenuPopover from './SubmenuPopover.vue'
 
 export default {
+  emits: ['open-marker'],
   name: 'MapView',
+  components: { SubmenuPopover },
   props: {
     src: { type: String, required: true },
+    fit: { type: String, default: 'contain' }, // 'contain' | 'cover'
     maxScale: { type: Number, default: 6 },
-    fit: { type: String, default: 'contain' } // 'contain' | 'cover'
+    // Markers: array of { id, type, x, y, title?, items? }
+    // x,y are normalized 0..1 relative to the image's natural size.
+    markers: { type: Array, default: () => [] },
+    // Zoom level where a group hides and its children appear
+    groupRevealScale: { type: Number, default: 2.0 }
   },
   data() {
-    return { pz: null, ro: null }
+    return {
+      pz: null,
+      ro: null,
+      imgNatural: { w: 0, h: 0 },
+      currentScale: 1,
+      openGroup: null,
+      popoverPos: { x: 0, y: 0 }
+    }
+  },
+  computed: {
+    groupVisible() {
+      return this.currentScale < this.groupRevealScale
+    },
+    visibleMarkers() {
+      const out = []
+      for (const m of this.markers) {
+        if (m.type === 'group') {
+          if (this.groupVisible) {
+            out.push({ ...m, isGroup: true })
+          } else {
+            // when zoomed in, show children instead of group
+            for (const c of (m.items || [])) out.push({ ...c, isChildOf: m.id })
+          }
+        } else {
+          out.push(m)
+        }
+      }
+      return out
+    }
   },
   mounted() {
-    const img = this.$refs.imgEl
+    const inner = this.$refs.inner
     const viewport = this.$refs.viewport
+    const img = this.$refs.imgEl
 
-    this.pz = Panzoom(img, {
+    // Panzoom on the INNER wrapper so image + markers move/scale together
+    this.pz = Panzoom(inner, {
       contain: 'outside',
       maxScale: this.maxScale,
       minScale: 0.1,
@@ -37,41 +104,59 @@ export default {
       animate: true
     })
 
-    // Zoom with wheel
+    // Wheel to zoom on the viewport
     viewport.addEventListener('wheel', (e) => {
       e.preventDefault()
       this.pz.zoomWithWheel(e)
     }, { passive: false })
 
-    // Refit when the viewport resizes
+    // Track pan/zoom updates for scale & popover following
+    const onChange = () => {
+      this.currentScale = this.pz.getScale()
+      this.updatePopoverScreenPos()
+      if (!this.groupVisible) this.openGroup = null // hide popover when groups are hidden
+    }
+    inner.addEventListener('panzoomchange', onChange)
+    inner.addEventListener('panzoompan', onChange)
+    inner.addEventListener('panzoomzoom', onChange)
+
+    // Re-fit when the container size changes
     this.ro = new ResizeObserver(() => this.fitToView())
     this.ro.observe(viewport)
 
-    // If the image was cached, 'load' might not fire
+    // If the image was cached, load may not fire
     if (img.complete && img.naturalWidth) {
-      this.fitToView()
-    } else {
-      img.addEventListener('load', this.fitToView, { once: true })
+      this.onImgLoad()
     }
 
-    // Also refit on the next frame to catch any late style/layout changes
+    // Safety: also fit next frame in case layout/styles arrive late
     requestAnimationFrame(() => this.fitToView())
   },
   beforeUnmount() {
     this.ro?.disconnect()
-    window.removeEventListener('resize', this.fitToView)
   },
   methods: {
-    fitToView() {
+    onImgLoad() {
       const img = this.$refs.imgEl
+      if (!img || !img.naturalWidth) return
+      this.imgNatural.w = img.naturalWidth
+      this.imgNatural.h = img.naturalHeight
+      this.fitToView()
+    },
+
+    fitToView() {
+      const inner = this.$refs.inner
       const viewport = this.$refs.viewport
-      if (!img || !img.naturalWidth || !viewport) return
+      const { w: iw, h: ih } = this.imgNatural
+      if (!inner || !viewport || !iw || !ih) return
+
+      // Size the transform target to the image's native resolution
+      inner.style.width = `${iw}px`
+      inner.style.height = `${ih}px`
 
       const vw = viewport.clientWidth || 0
       const vh = viewport.clientHeight || 0
-      const iw = img.naturalWidth || 0
-      const ih = img.naturalHeight || 0
-      if (!vw || !vh || !iw || !ih) return  // bail if sizes not ready
+      if (!vw || !vh) return
 
       const scale = this.fit === 'cover'
         ? Math.max(vw / iw, vh / ih)
@@ -86,44 +171,102 @@ export default {
       const offsetY = (vh - sh) / 2
       this.pz.moveTo(offsetX, offsetY, { animate: false })
 
-      // Force a repaint on some browsers / hot-reload edge cases
-      // (reads + writes a style to trigger reflow)
+      // Nudge paint for hot-reload edge cases
       // eslint-disable-next-line no-unused-expressions
-      img.offsetHeight
-      img.style.transform += ' translateZ(0)'
-      // remove the extra Z after a tick so transforms stay tidy
-      requestAnimationFrame(() => {
-        img.style.transform = img.style.transform.replace(' translateZ(0)', '')
-      })
+      this.$refs.imgEl?.offsetHeight
     },
+
+    // Convert normalized coords to pixel positions in the inner (natural) space
+    markerStyle(m) {
+      const left = (m.x || 0) * this.imgNatural.w
+      const top  = (m.y || 0) * this.imgNatural.h
+      return { left: `${left}px`, top: `${top}px` }
+    },
+
+    onMarkerClick(m) {
+      if (m.isGroup) {
+        this.openGroup = m
+        this.updatePopoverScreenPos()
+      } else {
+        // child/normal marker → open modal, navigate, etc.
+        this.$emit('open-marker', m)
+      }
+    },
+
+    updatePopoverScreenPos() {
+      if (!this.openGroup || !this.pz) return
+      const { x: panX, y: panY } = this.pz.getPan()
+      const scale = this.pz.getScale()
+      const mx = this.openGroup.x * this.imgNatural.w
+      const my = this.openGroup.y * this.imgNatural.h
+      // Convert to viewport/screen pixels
+      this.popoverPos.x = panX + mx * scale
+      this.popoverPos.y = panY + my * scale
+    },
+
+    // Optional controls to expose
     resetView() { this.fitToView() },
-    zoomIn() { this.pz.zoomIn() },
-    zoomOut() { this.pz.zoomOut() }
+    zoomIn() { this.pz?.zoomIn() },
+    zoomOut() { this.pz?.zoomOut() }
   }
 }
 </script>
 
-
 <style scoped>
+/* Fill the window; change to 'absolute' and size a parent if needed */
 .map-viewport {
-  position: fixed;   /* fills the screen; if you kept a header area, change to absolute and size the parent */
+  position: fixed;
   inset: 0;
-  overflow: hidden;  /* no scrollbars while the image is larger than viewport */
-  background: #000;  /* avoids white borders while letterboxed in 'contain' */
-  z-index: 0;
+  overflow: hidden;
+  background: #000;
+  z-index: 0; /* map sits behind UI elements */
 }
 
-/* Let Panzoom control size via transforms (no intrinsic shrinking) */
+/* Transform target (Panzoom applies transforms here) */
+.map-inner {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* Raw image; Panzoom handles transform via the .map-inner */
 .map-image {
-  position: absolute;      /* so transforms don’t affect layout */
-  top: 0; left: 0;
-  max-width: none;         /* keep natural size for accurate scaling */
+  position: absolute;
+  top: 0;
+  left: 0;
+  max-width: none;
   max-height: none;
   user-select: none;
   -webkit-user-drag: none;
   touch-action: none;
-  transform-origin: 0 0;   /* Panzoom expects top-left origin */
-  will-change: transform;
-  display: block;
+  transform-origin: 0 0;
 }
+
+.marker-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none; /* so dragging pans the map unless on a marker */
+  z-index: 10;
+}
+
+.marker {
+  position: absolute;
+  transform: translate(-50%, -100%); /* tip at the (x,y) point */
+  pointer-events: auto;
+  z-index: 10;
+}
+
+/* Simple circular pin; style per type as needed */
+.marker .pin {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid rgba(0,0,0,.35);
+  box-shadow: 0 2px 6px rgba(0,0,0,.35);
+  background: #22d3ee; /* default cyan */
+}
+
+.marker.type-site  .pin { background: #f59e0b; } /* amber */
+.marker.type-text  .pin { background: #14b8a6; } /* teal */
+.marker.is-group    .pin { background: #60a5fa; } /* blue for group */
 </style>
