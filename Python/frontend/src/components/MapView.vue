@@ -16,8 +16,7 @@
         <div
           v-for="m in visibleMarkers"
           :key="m.id"
-          class="marker"
-          :class="['type-' + m.type, m.isGroup ? 'is-group' : '']"
+          class="marker" :class="['type-' + (m.type || 'default'), m.isGroup ? 'is-group' : '']"
           :style="markerStyle(m)"
           @click.stop="onMarkerClick(m)"
           title="Click for details"
@@ -243,6 +242,8 @@ export default {
 }
 
 .marker-layer {
+  pointer-events: none;
+  pointer-events: none;
   position: absolute;
   inset: 0;
   pointer-events: none; /* so dragging pans the map unless on a marker */
@@ -250,6 +251,8 @@ export default {
 }
 
 .marker {
+  pointer-events: auto; cursor: pointer;
+  pointer-events: auto; cursor: pointer;
   position: absolute;
   transform: translate(-50%, -100%); /* tip at the (x,y) point */
   pointer-events: auto;
@@ -257,16 +260,34 @@ export default {
 }
 
 /* Simple circular pin; style per type as needed */
+
+/* === Type accent colors for marker pins === */
 .marker .pin {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  border: 2px solid rgba(0,0,0,.35);
+  border: 2px solid var(--accent, rgba(0,0,0,.35));
   box-shadow: 0 2px 6px rgba(0,0,0,.35);
-  background: #22d3ee; /* default cyan */
+  background: #0e1118; /* neutral so the ring color pops */
 }
+.marker.type-site    .pin { --accent: #eab308; }
+.marker.type-text    .pin { --accent: #14b8a6; }
+.marker.type-artifact .pin { --accent: #f97316; }
+.marker.type-region  .pin,
+.marker.type-group   .pin,
+.marker.is-group     .pin { --accent: #60a5fa; }
+
 
 .marker.type-site  .pin { background: #f59e0b; } /* amber */
 .marker.type-text  .pin { background: #14b8a6; } /* teal */
 .marker.is-group    .pin { background: #60a5fa; } /* blue for group */
+
+/* Type-based accent ring */
+.marker.type-site      .pin { --accent: #eab308; } /* amber */
+.marker.type-text      .pin { --accent: #14b8a6; } /* teal */
+.marker.type-artifact  .pin { --accent: #f97316; } /* orange */
+.marker.type-region    .pin,
+.marker.type-group     .pin,
+.marker.is-group       .pin { --accent: #60a5fa; } /* blue */
+
 </style>
