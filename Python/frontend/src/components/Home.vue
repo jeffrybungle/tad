@@ -6,6 +6,10 @@
       userImage=""
       @openModal="handleOpenModal"
     />
+    <MapView src="/img/map.jpg" />
+    <div style="position: relative; z-index: 5000;">
+  <MenuButton />
+</div>
 
     <div v-if="SHOW_ADMIN">
     <section style="margin-left:220px; padding:1rem;">
@@ -41,10 +45,12 @@
 import HeaderBar from './HeaderBar.vue'
 import { SHOW_ADMIN } from '../featureFlags'
 import { getUsers } from '../api'
+import MapView from './MapView.vue'
+import MenuButton from './MenuButton.vue'
 
 export default {
   name: "Home",
-  components: { HeaderBar },
+  components: { HeaderBar, MapView, MenuButton },
 
   props: {
     loggedIn: Boolean,
@@ -87,5 +93,10 @@ export default {
   padding: 1em;
   width: 200px;
   float: left;
+}
+
+.header {
+  position: relative;
+  z-index: 1000;
 }
 </style>

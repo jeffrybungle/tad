@@ -1,0 +1,11 @@
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+h1,
+h2,
+h3,
+nav,
+.menu-list li {
+    font-family: 'Poppins', sans-serif;
+}
