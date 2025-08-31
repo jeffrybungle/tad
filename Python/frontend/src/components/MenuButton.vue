@@ -65,7 +65,7 @@ export default {
 /* ===== Button + X animation ===== */
 .menu-button {
   width: 56px; height: 56px;
-  border-radius: 50%;
+  border-radius: 56px;
   background: #0d9488;
   border: 0; cursor: pointer;
   position: relative;
@@ -111,11 +111,11 @@ export default {
 
 /* Open state: full-height left panel */
 .panel.open {
-  top: 0;               /* slide up to top */
-  left: 0;              /* slide to far left */
-  height: 100vh;        /* full viewport height */
-  width: 320px;         /* panel width (tweak as you like) */
-  border-radius: 0 16px 16px 0; /* rounded right edge only */
+  top: 20px;               /* slide up to top */
+  left: 20px;              /* slide to far left */
+  height: 70%;        /* full viSewport height */
+  width: 270px;         /* panel width (tweak as you like) */
+  border-radius: 30px; /* rounded right edge only */
   pointer-events: auto;       /* <-- clickable when open */
 }
 
